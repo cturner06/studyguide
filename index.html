@@ -199,6 +199,38 @@ body{font-family:system-ui,-apple-system,sans-serif;background:#0a0a0a;color:var
 .btn.primary{background:linear-gradient(135deg,var(--gold),var(--gold-dim));color:#111;border-color:transparent;box-shadow:0 0 12px rgba(201,168,76,.35)}
 
 /* ── FOOTER ── */
+
+/* ── QUIZ MODE PILLS ── */
+.qmode-pill{display:inline-block;font-size:11px;font-weight:700;padding:4px 12px;border-radius:16px;cursor:pointer;border:1px solid var(--glass-border);background:var(--glass);color:var(--muted);transition:all .15s;touch-action:manipulation}
+.qmode-pill.qmode-active,.qmode-pill:hover{background:linear-gradient(135deg,var(--gold),var(--gold-dim));color:#111;border-color:transparent}
+.qmode-pill-r{display:inline-block;font-size:11px;font-weight:700;padding:4px 12px;border-radius:16px;cursor:pointer;border:1px solid rgba(248,113,113,.25);background:rgba(248,113,113,.06);color:var(--danger);transition:all .15s;touch-action:manipulation}
+.qmode-pill-r.qmode-r-active,.qmode-pill-r:hover{background:var(--danger-bg);border-color:rgba(248,113,113,.5);color:var(--danger)}
+
+.tb-domain{background:var(--glass);border:1px solid var(--glass-border);border-radius:14px;overflow:hidden;margin-bottom:.75rem;backdrop-filter:blur(16px)}
+.tb-domain-header{padding:.75rem 1.1rem;display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;touch-action:manipulation;transition:background .15s}
+.tb-domain-header:hover{background:var(--glass2)}
+.tb-domain-header-left{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:var(--gold)}
+.tb-count{font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;background:var(--gold-bg);border:1px solid var(--gold-border);color:var(--gold)}
+.tb-arrow{font-size:10px;color:var(--muted);transition:transform .25s}
+.tb-domain-header.open .tb-arrow{transform:rotate(90deg)}
+.tb-body{display:none;border-top:1px solid var(--glass-border)}
+.tb-body.open{display:block}
+.tb-q{padding:.75rem 1.1rem;border-bottom:0.5px solid var(--glass-border);font-size:12px}
+.tb-q:last-child{border-bottom:none}
+.tb-q-text{color:var(--text);font-weight:600;margin-bottom:5px;line-height:1.5}
+.tb-correct{font-size:12px;color:var(--success);font-weight:700;margin-bottom:3px}
+.tb-exp{font-size:11px;color:var(--muted);line-height:1.5}
+.tb-badge{display:inline-block;font-size:10px;font-weight:700;padding:2px 7px;border-radius:6px;margin-bottom:6px}
+.tb-badge-d1{background:rgba(55,138,221,0.15);color:#378ADD}
+.tb-badge-d2{background:rgba(99,153,34,0.15);color:#639922}
+.tb-badge-d3{background:rgba(186,117,23,0.15);color:#BA7517}
+.tb-badge-d4{background:rgba(212,83,126,0.15);color:#D4537E}
+.tb-badge-retake{background:var(--danger-bg);color:var(--danger)}
+.quiz-settings{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:.875rem;padding:.75rem 1rem;background:var(--glass);border:1px solid var(--glass-border);border-radius:12px}
+.quiz-settings label{font-size:12px;color:var(--muted);font-weight:600}
+.quiz-settings select{padding:5px 10px;border-radius:8px;border:1px solid var(--glass-border);background:var(--glass);color:var(--text);font-family:inherit;font-size:12px;cursor:pointer}
+.quiz-settings .btn{font-size:12px;padding:5px 14px}
+
 .footer{text-align:center;font-size:11px;color:var(--muted);padding:1.25rem 0 .5rem;border-top:1px solid var(--glass-border);margin-top:1rem}
 .footer span{color:var(--gold)}
 
@@ -240,13 +272,15 @@ body{font-family:system-ui,-apple-system,sans-serif;background:#0a0a0a;color:var
     <div class="tab" onclick="nav('d2',this)">2 · Identity</div>
     <div class="tab" onclick="nav('d3',this)">3 · Devices</div>
     <div class="tab" onclick="nav('d4',this)">4 · Apps</div>
+    <div class="tab" onclick="nav('test',this)" style="border-color:rgba(201,168,76,.4);color:var(--gold)">🧠 Test</div>
   </div>
   <div class="tab-row-label" style="margin-top:.6rem">🛠️ Study Tools</div>
   <div class="tabs">
     <div class="tab" onclick="nav('cheat',this)">📋 Cheat Sheet</div>
     <div class="tab" onclick="nav('tree',this)">🌳 Decision Tree</div>
     <div class="tab" onclick="nav('flash',this)">🃏 Flashcards</div>
-    <div class="tab" onclick="nav('quiz',this)">🧠 Quiz</div>
+    <div class="tab" style="border-color:rgba(248,113,113,.4);color:#f87171" onclick="nav('retake',this)">🎯 Retake Focus</div>
+    <div class="tab" onclick="nav('testbank',this)">📚 Question Bank</div>
   </div>
 </div>
 
@@ -979,42 +1013,363 @@ body{font-family:system-ui,-apple-system,sans-serif;background:#0a0a0a;color:var
 <!-- ══════════════════════════════════════════
      QUIZ
 ══════════════════════════════════════════ -->
-<div class="view" id="quiz">
-  <div class="progress"><div class="progress-fill" id="prog" style="width:0%"></div></div>
-  <div id="quiz-area"></div>
-  <div class="quiz-nav">
-    <button class="btn primary" id="next-btn" onclick="nextQ()" style="display:none">Next →</button>
-    <span class="score-box" id="score-display"></span>
+
+
+
+<!-- ══════════════════════════════════════════
+     TEST BANK — Single source of truth
+     Renders dynamically from questionBank[]
+══════════════════════════════════════════ -->
+
+<!-- RETAKE FOCUS VIEW -->
+<div class="view" id="retake">
+
+  <!-- MOTIVATION -->
+  <div style="background:var(--glass);border:1px solid var(--glass-border);border-radius:14px;padding:1rem 1.1rem;backdrop-filter:blur(20px);margin-bottom:.875rem">
+    <div style="font-size:14px;font-weight:700;color:var(--gold);margin-bottom:.625rem">The Plan to Pass on Your Retake</div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <div style="display:flex;gap:10px;font-size:13px"><span style="color:var(--gold);font-weight:700;flex-shrink:0">Step 1</span><span style="color:#ccc">Drill this Retake tab daily. Open each deep drill and read through it. Know the comparisons cold.</span></div>
+      <div style="display:flex;gap:10px;font-size:13px"><span style="color:var(--gold);font-weight:700;flex-shrink:0">Step 2</span><span style="color:#ccc">Hit the 🧠 Test tab → Retake Focus → drill those 12 questions until you score 90%+.</span></div>
+      <div style="display:flex;gap:10px;font-size:13px"><span style="color:var(--gold);font-weight:700;flex-shrink:0">Step 3</span><span style="color:#ccc">Run the D1 and D3 flashcards to stay warm on what you already own.</span></div>
+      <div style="display:flex;gap:10px;font-size:13px"><span style="color:var(--gold);font-weight:700;flex-shrink:0">Step 4</span><span style="color:#ccc">You took the exam before this guide existed. Now you have the guide, the score report, and a targeted drill. You are more prepared than you were the first time.</span></div>
+    </div>
+    <div style="margin-top:.875rem;text-align:center;font-size:14px;font-weight:700;color:var(--gold)">578 → 700. You know exactly what to fix. Go get it. 🎯</div>
   </div>
+
+  <!-- SCORE + STRENGTHS SIDE BY SIDE -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:.875rem;align-items:start">
+    <div style="background:var(--gold-bg);border:1px solid var(--gold-border);border-radius:14px;padding:.875rem;backdrop-filter:blur(20px);height:100%">
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--gold);opacity:.7;margin-bottom:.625rem">Score Report · Mar 19 2026</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;margin-bottom:.75rem">
+        <div style="background:var(--glass);border:1px solid var(--glass-border);border-radius:8px;padding:.5rem;text-align:center"><div style="font-size:10px;color:var(--muted);margin-bottom:3px">Score</div><div style="font-size:20px;font-weight:700;color:var(--danger)">578</div></div>
+        <div style="background:var(--glass);border:1px solid var(--glass-border);border-radius:8px;padding:.5rem;text-align:center"><div style="font-size:10px;color:var(--muted);margin-bottom:3px">Pass</div><div style="font-size:20px;font-weight:700;color:var(--gold)">700</div></div>
+        <div style="background:var(--glass);border:1px solid var(--glass-border);border-radius:8px;padding:.5rem;text-align:center"><div style="font-size:10px;color:var(--muted);margin-bottom:3px">Gap</div><div style="font-size:20px;font-weight:700;color:var(--success)">122</div></div>
+      </div>
+      <div style="font-size:10px;color:var(--muted);margin-bottom:4px">Progress to passing</div>
+      <div style="height:6px;border-radius:3px;background:rgba(255,255,255,0.08);overflow:hidden;margin-bottom:.5rem"><div style="height:100%;width:82.5%;border-radius:3px;background:linear-gradient(90deg,var(--gold),var(--gold2))"></div></div>
+      <div style="font-size:10px;color:var(--muted);text-align:right">82.5% of the way there</div>
+    </div>
+    <div style="background:var(--success-bg);border:1px solid rgba(74,222,128,0.25);border-radius:14px;padding:.875rem;height:100%">
+      <div style="font-size:11px;font-weight:700;color:var(--success);margin-bottom:.625rem">✅ Already Own — Keep Sharp</div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <div style="font-size:11px;color:#ccc;line-height:1.4;padding-left:.625rem;border-left:2px solid var(--success)"><strong style="color:var(--success)">Infrastructure (25–30%)</strong><br>Autopilot, co-mgmt, join types. Strong.</div>
+        <div style="font-size:11px;color:#ccc;line-height:1.4;padding-left:.625rem;border-left:2px solid var(--success)"><strong style="color:var(--success)">Manage Devices (30–35%)</strong><br>Config Profiles, Update Rings. Solid.</div>
+        <div style="font-size:11px;color:#ccc;line-height:1.4;padding-left:.625rem;border-left:2px solid var(--success)"><strong style="color:var(--success)">Applications (15–20%)</strong><br>MAM and App Protection mostly there.</div>
+      </div>
+      <div style="margin-top:.625rem;font-size:11px;color:var(--success);font-weight:600;background:rgba(74,222,128,.08);border-radius:7px;padding:5px 8px">Run D1 &amp; D3 flashcards before retake.</div>
+    </div>
+  </div>
+
+  <!-- TOP 3 WEAK AREAS -->
+  <div style="background:var(--danger-bg);border:1px solid rgba(248,113,113,0.25);border-radius:14px;padding:1rem 1.1rem;margin-bottom:.875rem">
+    <div style="font-size:13px;font-weight:700;color:var(--danger);margin-bottom:.625rem">🎯 Microsoft Top 3 Weak Areas — These Are Your Points</div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <div style="background:rgba(248,113,113,0.08);border:1px solid rgba(248,113,113,0.2);border-radius:10px;padding:.7rem"><div style="font-size:13px;font-weight:700;color:var(--danger);margin-bottom:3px">1. Perform remote actions on devices</div><div style="font-size:12px;color:var(--muted)">Full Wipe vs Retire vs Selective Wipe vs Sync vs Remote Lock vs Autopilot Reset — all sound similar. The exam exploits this.</div></div>
+      <div style="background:rgba(248,113,113,0.08);border:1px solid rgba(248,113,113,0.2);border-radius:10px;padding:.7rem"><div style="font-size:13px;font-weight:700;color:var(--danger);margin-bottom:3px">2. Add devices to Microsoft Entra ID</div><div style="font-size:12px;color:var(--muted)">Azure AD Joined vs Hybrid vs Registered — when each is used, what it requires, what it enables.</div></div>
+      <div style="background:rgba(248,113,113,0.08);border:1px solid rgba(248,113,113,0.2);border-radius:10px;padding:.7rem"><div style="font-size:13px;font-weight:700;color:var(--danger);margin-bottom:3px">3. Deploy and update apps</div><div style="font-size:12px;color:var(--muted)">Required vs Available vs MAM. Detection rules. Selective Wipe. These all look similar.</div></div>
+    </div>
+  </div>
+
+  <!-- DEEP DRILL 1 -->
+  <div class="group">
+    <div class="group-title" onclick="toggleGroup(this)"><span class="gt-left">Deep Drill 1 — Remote Actions on Devices</span><span class="gt-arrow">▶</span></div>
+    <div class="group-body">
+      <div style="font-size:12px;color:var(--gold);background:var(--gold-bg);border:1px solid var(--gold-border);border-radius:8px;padding:6px 10px;margin-bottom:.5rem;font-weight:600">Same scenario — different right answer. Know which is which cold.</div>
+      <div class="kw-block"><div class="keywords">Corporate owned / confirmed stolen / remove EVERYTHING</div><div class="answer">Full Wipe</div><div class="note">Factory reset. Removes all company AND personal data.</div><div class="not-this">🚫 Never on a personal BYOD device.</div></div>
+      <div class="kw-block"><div class="keywords">BYOD employee leaves / enrolled in MDM / remove company data / keep personal</div><div class="answer">Retire</div><div class="note">Removes company apps, email, policies. Personal data stays. Requires MDM enrollment.</div></div>
+      <div class="kw-block"><div class="keywords">Personal device NEVER enrolled in MDM / remove only corporate app data</div><div class="answer">Selective Wipe — MAM Wipe</div><div class="note">Removes corporate data inside the managed app only. No MDM enrollment needed.</div><div class="think">💡 No MDM + remove company data = Selective Wipe</div></div>
+      <div class="kw-block"><div class="keywords">Policy not applying / force device to check in right now</div><div class="answer">Sync Action</div><div class="note">Forces immediate check-in. Always the FIRST troubleshooting step.</div></div>
+      <div class="kw-block"><div class="keywords">Device possibly lost / not confirmed stolen / lock screen</div><div class="answer">Remote Lock</div><div class="note">Locks screen. User enters PIN to unlock.</div></div>
+      <div class="kw-block"><div class="keywords">Re-assign device to new employee / keep in Intune / keep Autopilot registration</div><div class="answer">Autopilot Reset</div><div class="note">Returns to setup screen. Keeps MDM enrollment and Autopilot registration.</div><div class="not-this">🚫 Different from Full Wipe — keeps device in your tenant.</div></div>
+      <div style="background:rgba(255,255,255,0.03);border:1px solid var(--glass-border);border-radius:10px;padding:.75rem;margin-top:.25rem">
+        <div style="font-size:11px;font-weight:700;color:var(--gold);margin-bottom:.5rem">Quick reference</div>
+        <div style="display:flex;flex-direction:column;gap:5px">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px"><div style="font-size:11px;background:var(--danger-bg);border-radius:6px;padding:5px 8px;color:var(--danger)">Corporate stolen = Full Wipe</div><div style="font-size:11px;background:var(--success-bg);border-radius:6px;padding:5px 8px;color:var(--success)">BYOD leaves (enrolled) = Retire</div></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px"><div style="font-size:11px;background:var(--danger-bg);border-radius:6px;padding:5px 8px;color:var(--danger)">Personal not enrolled = Selective Wipe</div><div style="font-size:11px;background:var(--success-bg);border-radius:6px;padding:5px 8px;color:var(--success)">Re-assign employee = Autopilot Reset</div></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px"><div style="font-size:11px;background:var(--danger-bg);border-radius:6px;padding:5px 8px;color:var(--danger)">Policy not applying = Sync</div><div style="font-size:11px;background:var(--success-bg);border-radius:6px;padding:5px 8px;color:var(--success)">Possibly lost = Remote Lock</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DEEP DRILL 2 -->
+  <div class="group">
+    <div class="group-title" onclick="toggleGroup(this)"><span class="gt-left">Deep Drill 2 — Add Devices to Entra ID</span><span class="gt-arrow">▶</span></div>
+    <div class="group-body">
+      <div class="kw-block"><div class="keywords">Cloud only / no on-prem AD / Intune only / new or remote worker device</div><div class="answer">Azure AD Joined</div><div class="think">💡 No on-prem AD = Azure AD Joined</div></div>
+      <div class="kw-block"><div class="keywords">On-prem AD + Azure AD on same device / co-management required / existing enterprise</div><div class="answer">Hybrid Azure AD Joined</div><div class="note">ONE device in two places. Required for co-management.</div><div class="not-this">🚫 Hybrid = one device in two directories. NOT two separate devices.</div></div>
+      <div class="kw-block"><div class="keywords">Personal BYOD device / company does not own it / access company apps only</div><div class="answer">Azure AD Registered + MAM</div><div class="think">💡 Personal device + light touch = Registered + MAM</div></div>
+      <div style="background:rgba(255,255,255,0.03);border:1px solid var(--glass-border);border-radius:10px;padding:.75rem;margin-top:.25rem">
+        <div style="font-size:11px;font-weight:700;color:var(--gold);margin-bottom:.5rem">Side by side</div>
+        <div style="display:flex;flex-direction:column;gap:5px;font-size:11px">
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px">
+            <div style="background:var(--gold-bg);border:1px solid var(--gold-border);border-radius:6px;padding:5px 8px;color:var(--gold);font-weight:700;text-align:center">Azure AD Joined</div>
+            <div style="background:var(--gold-bg);border:1px solid var(--gold-border);border-radius:6px;padding:5px 8px;color:var(--gold);font-weight:700;text-align:center">Hybrid Joined</div>
+            <div style="background:var(--gold-bg);border:1px solid var(--gold-border);border-radius:6px;padding:5px 8px;color:var(--gold);font-weight:700;text-align:center">AD Registered</div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px">
+            <div style="background:var(--glass);border:1px solid var(--glass-border);border-radius:6px;padding:5px 8px;color:#ccc">Cloud only. No on-prem AD.</div>
+            <div style="background:var(--glass);border:1px solid var(--glass-border);border-radius:6px;padding:5px 8px;color:#ccc">On-prem + Azure AD. Co-mgmt.</div>
+            <div style="background:var(--glass);border:1px solid var(--glass-border);border-radius:6px;padding:5px 8px;color:#ccc">Personal. MAM only.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DEEP DRILL 3 -->
+  <div class="group">
+    <div class="group-title" onclick="toggleGroup(this)"><span class="gt-left">Deep Drill 3 — Deploy and Update Apps</span><span class="gt-arrow">▶</span></div>
+    <div class="group-body">
+      <div class="kw-block"><div class="keywords">Force install silently / all devices / no user choice</div><div class="answer">Required Assignment</div><div class="think">💡 IT forces it = Required</div></div>
+      <div class="kw-block"><div class="keywords">User chooses to install / Company Portal / optional</div><div class="answer">Available Assignment</div><div class="think">💡 User chooses = Available</div></div>
+      <div class="kw-block"><div class="keywords">Traditional .exe or .msi / custom app deployment</div><div class="answer">Win32 App</div><div class="note">Package with IntuneWinAppUtil. App stuck at "install pending"? Check detection rules.</div></div>
+      <div class="kw-block"><div class="keywords">BYOD / protect app data / WITHOUT enrolling device</div><div class="answer">App Protection Policy — MAM</div><div class="not-this">🚫 "Without enrolling" = MAM. Every time.</div></div>
+      <div class="kw-block"><div class="keywords">Remove corporate data from personal phone / no MDM / leave personal stuff</div><div class="answer">Selective Wipe — MAM Wipe</div></div>
+      <div class="kw-block"><div class="keywords">Regulated environment / stable Office updates / every 6 months</div><div class="answer">Semi-Annual Enterprise Channel</div></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- TEST VIEW -->
+<div class="view" id="test">
+  <div style="background:var(--gold-bg);border:1px solid var(--gold-border);border-radius:14px;padding:.875rem 1.1rem;margin-bottom:.875rem;backdrop-filter:blur(20px)">
+    <div style="font-size:16px;font-weight:700;color:var(--gold);margin-bottom:3px">🧠 Test Yourself</div>
+    <div style="font-size:12px;color:var(--muted)">One question at a time. Pick your mode, pick your count, then go.</div>
+  </div>
+  <div id="test-setup">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:.875rem">
+      <div id="mode-normal-card" onclick="selectMode('normal')" style="cursor:pointer;border-radius:12px;border:2px solid var(--gold);background:var(--gold-bg);padding:.875rem;text-align:center;transition:all .2s">
+        <div style="font-size:20px;margin-bottom:4px">📋</div>
+        <div style="font-size:13px;font-weight:700;color:var(--gold)">Normal Quiz</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px">All four exam domains</div>
+      </div>
+      <div id="mode-retake-card" onclick="selectMode('retake')" style="cursor:pointer;border-radius:12px;border:1px solid rgba(248,113,113,.3);background:var(--danger-bg);padding:.875rem;text-align:center;transition:all .2s">
+        <div style="font-size:20px;margin-bottom:4px">🎯</div>
+        <div style="font-size:13px;font-weight:700;color:var(--danger)">Retake Focus</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px">Your 3 weak areas only</div>
+      </div>
+    </div>
+    <div style="margin-bottom:.875rem">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:.5rem">How many questions?</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <div class="qmode-pill qmode-active" id="cnt-5"  onclick="selectCount(5,this)">5</div>
+        <div class="qmode-pill" id="cnt-10" onclick="selectCount(10,this)">10</div>
+        <div class="qmode-pill" id="cnt-20" onclick="selectCount(20,this)">20</div>
+        <div class="qmode-pill" id="cnt-all" onclick="selectCount('all',this)">All</div>
+      </div>
+    </div>
+    <div id="domain-filter-row" style="margin-bottom:.875rem">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:.5rem">Domain focus <span style="color:var(--muted);font-weight:400;font-size:10px">(Normal mode only)</span></div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <div class="qmode-pill qmode-active" id="dom-all" onclick="selectDomain('all',this)">All</div>
+        <div class="qmode-pill" id="dom-d1" onclick="selectDomain('d1',this)">🚀 Domain 1</div>
+        <div class="qmode-pill" id="dom-d2" onclick="selectDomain('d2',this)">🔐 Domain 2</div>
+        <div class="qmode-pill" id="dom-d3" onclick="selectDomain('d3',this)">🛡️ Domain 3</div>
+        <div class="qmode-pill" id="dom-d4" onclick="selectDomain('d4',this)">📦 Domain 4</div>
+      </div>
+    </div>
+    <button class="btn primary" onclick="beginTest()" style="width:100%;padding:10px;font-size:14px;border-radius:10px">Start Test →</button>
+  </div>
+  <div id="test-active" style="display:none">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem">
+      <div id="test-mode-label" style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--gold)"></div>
+      <button class="btn" onclick="endTest()" style="font-size:11px;padding:4px 12px">✕ End</button>
+    </div>
+    <div class="progress"><div class="progress-fill" id="test-prog" style="width:0%"></div></div>
+    <div id="test-q-area"></div>
+    <div style="margin-top:.5rem;display:flex;align-items:center;gap:8px">
+      <button class="btn primary" id="test-next-btn" onclick="testNextQ()" style="display:none">Next Question →</button>
+      <span class="score-box" id="test-score"></span>
+    </div>
+  </div>
+</div>
+
+<div class="view" id="testbank">
+  <div class="glass-card" style="margin-bottom:.75rem">
+    <div class="section-title">📚 Test Bank — All Questions</div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:.75rem">Every question in the app lives here. The Quiz tab draws randomly from this bank. Add a question here and it automatically becomes available in the quiz.</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn" onclick="filterTB('all',this)" id="tbf-all" style="font-size:11px;padding:4px 12px">All</button>
+      <button class="btn" onclick="filterTB('d1',this)" id="tbf-d1" style="font-size:11px;padding:4px 12px">🚀 Domain 1</button>
+      <button class="btn" onclick="filterTB('d2',this)" id="tbf-d2" style="font-size:11px;padding:4px 12px">🔐 Domain 2</button>
+      <button class="btn" onclick="filterTB('d3',this)" id="tbf-d3" style="font-size:11px;padding:4px 12px">🛡️ Domain 3</button>
+      <button class="btn" onclick="filterTB('d4',this)" id="tbf-d4" style="font-size:11px;padding:4px 12px">📦 Domain 4</button>
+      <button class="btn" onclick="filterTB('retake',this)" id="tbf-retake" style="font-size:11px;padding:4px 12px">🎯 Retake</button>
+    </div>
+  </div>
+  <div style="border-top:1px solid var(--glass-border);padding-top:1rem;margin-bottom:.75rem">
+    <div style="font-size:14px;font-weight:700;color:var(--gold);margin-bottom:.5rem">📖 Question Bank <span style="font-size:11px;color:var(--muted);font-weight:400">— all questions used in the quiz above</span></div>
+  </div>
+
+  <div id="testbank-content"></div>
+
 </div>
 
 <div class="footer">Black &amp; Gold Study Guide Template v1.0 · <span>MD-102 Microsoft 365 Endpoint Administrator</span></div>
 </div><!-- end wrap -->
 
 <script>
-// ═══════════════════════════════════════════════════════════════
-//  PERSONAL STUDY GUIDE APP — Template v1.0
-//  ─────────────────────────────────────────
-//  HOW TO ADD A NEW COURSE (e.g. MS-102, Real Estate):
-//
-//  1. Make a copy of this file
-//  2. Change APP_CONFIG.title to your course name
-//  3. Replace the domain banner text in each .domain-banner div
-//  4. Replace the .kw-block content in each domain view
-//  5. Replace the flashcard data in allCards[] below
-//  6. Replace the quiz questions in questions[] below
-//  7. Replace the cheat sheet rows and decision tree items
-//
-//  Everything else (design, tabs, PWA, expand/collapse) is
-//  already built — just swap the content.
-// ═══════════════════════════════════════════════════════════════
-const APP_CONFIG = {
-  title: 'MD-102 Study Guide',
-  subtitle: 'Microsoft 365 Endpoint Administrator',
-  course: 'MD-102'
-};
+function goToBank(){
+  var tabs = document.querySelectorAll('.tab');
+  for(var i=0;i<tabs.length;i++){
+    if(tabs[i].getAttribute('onclick') && tabs[i].getAttribute('onclick').indexOf('testbank')>-1){
+      nav('testbank', tabs[i]); return;
+    }
+  }
+}
 
-// ── PWA INSTALL PROMPT ──
+
+// ── LAUNCH RETAKE TEST from Retake Focus tab ──
+function launchRetakeTest(){
+  var tabs = document.querySelectorAll('.tab');
+  var testTab = null;
+  for(var i=0;i<tabs.length;i++){
+    if(tabs[i].getAttribute('onclick') && tabs[i].getAttribute('onclick').indexOf("'test'")>-1){
+      testTab=tabs[i]; break;
+    }
+  }
+  if(testTab) nav('test', testTab);
+  selectMode('retake');
+  document.getElementById('test-setup').style.display='block';
+  document.getElementById('test-active').style.display='none';
+}
+
+
+
+
+// ═══════════════════════════════════════════════════════════════
+//  TEST MODULE — One node, two modes, one question at a time
+// ═══════════════════════════════════════════════════════════════
+let testMode='normal';
+let testDomain='all';
+let testCount=5;
+let testQuestions=[];
+let testCurrent=0;
+let testScore=0;
+let testAnswered=false;
+
+function selectMode(mode){
+  testMode=mode;
+  const nc=document.getElementById('mode-normal-card');
+  const rc=document.getElementById('mode-retake-card');
+  const df=document.getElementById('domain-filter-row');
+  if(mode==='normal'){
+    nc.style.border='2px solid var(--gold)';nc.style.background='var(--gold-bg)';
+    rc.style.border='1px solid rgba(248,113,113,.3)';rc.style.background='var(--danger-bg)';
+    df.style.opacity='1';df.style.pointerEvents='auto';
+  } else {
+    rc.style.border='2px solid var(--danger)';rc.style.background='rgba(248,113,113,0.2)';
+    nc.style.border='1px solid var(--glass-border)';nc.style.background='var(--glass)';
+    df.style.opacity='.4';df.style.pointerEvents='none';
+  }
+}
+function selectCount(n,el){
+  testCount=n;
+  document.querySelectorAll('.qmode-pill').forEach(p=>p.classList.remove('qmode-active'));
+  el.classList.add('qmode-active');
+}
+function selectDomain(d,el){
+  testDomain=d;
+  document.querySelectorAll('#domain-filter-row .qmode-pill').forEach(p=>p.classList.remove('qmode-active'));
+  el.classList.add('qmode-active');
+}
+function beginTest(){
+  let pool;
+  if(testMode==='retake'){
+    pool=questionBank.filter(q=>q.domain==='retake');
+  } else {
+    pool=testDomain==='all'
+      ?questionBank.filter(q=>q.domain!=='retake')
+      :questionBank.filter(q=>q.domain===testDomain);
+  }
+  const n=testCount==='all'?pool.length:Math.min(parseInt(testCount),pool.length);
+  testQuestions=shuffle(pool).slice(0,n);
+  testCurrent=0;testScore=0;testAnswered=false;
+  document.getElementById('test-setup').style.display='none';
+  document.getElementById('test-active').style.display='block';
+  const domainNames={d1:'Domain 1',d2:'Domain 2',d3:'Domain 3',d4:'Domain 4',all:'All Domains'};
+  const label=testMode==='retake'
+    ?'Retake Focus — Remote Actions · Entra ID · App Deployment'
+    :'Normal Quiz — '+(domainNames[testDomain]||testDomain);
+  document.getElementById('test-mode-label').textContent=label;
+  renderTestQ();
+}
+function endTest(){
+  document.getElementById('test-setup').style.display='block';
+  document.getElementById('test-active').style.display='none';
+  document.getElementById('test-q-area').innerHTML='';
+  document.getElementById('test-prog').style.width='0%';
+  document.getElementById('test-score').textContent='';
+  document.getElementById('test-next-btn').style.display='none';
+}
+function renderTestQ(){
+  if(testCurrent>=testQuestions.length){showTestResult();return;}
+  const q=testQuestions[testCurrent];
+  const dColors={d1:'#378ADD',d2:'#639922',d3:'#BA7517',d4:'#D4537E',retake:'var(--danger)'};
+  const dNames={d1:'Domain 1 — Deploy',d2:'Domain 2 — Identity',d3:'Domain 3 — Devices',d4:'Domain 4 — Apps',retake:'Retake Focus'};
+  const pct=Math.round((testCurrent/testQuestions.length)*100);
+  document.getElementById('test-prog').style.width=pct+'%';
+  document.getElementById('test-score').textContent='';
+  document.getElementById('test-next-btn').style.display='none';
+  testAnswered=false;
+  const shuffledOpts=shuffle(q.opts.map((o,i)=>({text:o,orig:i})));
+  const correctDisplay=shuffledOpts.findIndex(x=>x.orig===q.ans);
+  let html=`<div class="quiz-card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem">
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:${dColors[q.domain]||'var(--gold)'}">${dNames[q.domain]||q.domain}</div>
+      <div style="font-size:11px;color:var(--muted)">Question ${testCurrent+1} of ${testQuestions.length}</div>
+    </div>
+    <div class="q-text">${q.q}</div>
+    <div class="q-opts">`;
+  shuffledOpts.forEach((item,i)=>{
+    html+=`<button class="q-opt" onclick="answerTest(${item.orig},${i},${correctDisplay})">${String.fromCharCode(65+i)}. ${item.text}</button>`;
+  });
+  html+=`</div><div class="q-explain" id="test-explain"></div></div>`;
+  document.getElementById('test-q-area').innerHTML=html;
+}
+function answerTest(origIdx,displayIdx,correctDisplay){
+  if(testAnswered)return;
+  testAnswered=true;
+  const q=testQuestions[testCurrent];
+  const opts=document.querySelectorAll('#test-q-area .q-opt');
+  opts.forEach(o=>o.disabled=true);
+  const correct=origIdx===q.ans;
+  if(correct){opts[displayIdx].classList.add('correct');testScore++;}
+  else{opts[displayIdx].classList.add('wrong');opts[correctDisplay].classList.add('reveal');}
+  const exp=document.getElementById('test-explain');
+  exp.classList.add('show');
+  exp.style.background=correct?'var(--success-bg)':'var(--danger-bg)';
+  exp.style.color=correct?'var(--success)':'var(--danger)';
+  exp.style.borderColor=correct?'rgba(74,222,128,.3)':'rgba(248,113,113,.3)';
+  exp.innerHTML=`<strong>${correct?'Correct':'Incorrect'}</strong> — ${q.exp}<div class="q-also">💡 ${q.also}</div>`;
+  document.getElementById('test-score').textContent=`${testScore} correct of ${testCurrent+1} answered`;
+  document.getElementById('test-next-btn').style.display='inline-block';
+  testCurrent++;
+}
+function testNextQ(){
+  if(testCurrent>=testQuestions.length){showTestResult();}else{renderTestQ();}
+}
+function showTestResult(){
+  document.getElementById('test-prog').style.width='100%';
+  const pct=Math.round((testScore/testQuestions.length)*100);
+  const icon=pct>=90?'🎉':pct>=70?'👍':'📚';
+  const msg=pct>=90?'Outstanding — exam ready!':pct>=70?'Good — one more run.':'Review domain cards then try again.';
+  document.getElementById('test-q-area').innerHTML=`<div class="quiz-card" style="text-align:center;padding:2rem">
+    <div style="font-size:40px;margin-bottom:10px">${icon}</div>
+    <div style="font-size:28px;font-weight:700;color:var(--gold);margin-bottom:6px">${testScore} / ${testQuestions.length}</div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:1.5rem">${pct}% — ${msg}</div>
+    <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
+      <button class="btn primary" onclick="endTest()">New Test</button>
+      <button class="btn" onclick="goToBank()">Review Questions</button>
+    </div>
+  </div>`;
+  document.getElementById('test-next-btn').style.display='none';
+  document.getElementById('test-score').textContent='';
+}
+
+
 let deferredPrompt;
 window.addEventListener('beforeinstallprompt', e => {
   e.preventDefault();
@@ -1039,6 +1394,7 @@ function nav(id,el){
   el.classList.add('on');
   if(id==='quiz'&&!quizStarted)startQuiz();
   if(id==='flash'&&!flashStarted)initFlash();
+  if(id==='testbank')renderTestBank('all');
 }
 
 // ── DOMAIN GROUP EXPAND/COLLAPSE ──
@@ -1213,72 +1569,165 @@ function drillMissed(){
   renderCard();
 }
 
+// ── TEST BANK — Dynamic render from questionBank ──
+const domainMeta = {
+  d1:  {label:'🚀 Domain 1 — Deploy Windows',         badge:'tb-badge-d1'},
+  d2:  {label:'🔐 Domain 2 — Identity & Compliance',  badge:'tb-badge-d2'},
+  d3:  {label:'🛡️ Domain 3 — Manage & Protect Devices',badge:'tb-badge-d3'},
+  d4:  {label:'📦 Domain 4 — Manage Applications',    badge:'tb-badge-d4'},
+  retake:{label:'🎯 Retake Focus — Weak Areas',        badge:'tb-badge-retake'},
+};
+
+let currentTBFilter = 'all';
+
+function renderTestBank(filter){
+  filter = filter || currentTBFilter;
+  currentTBFilter = filter;
+  const container = document.getElementById('testbank-content');
+  if(!container) return;
+
+  // Group questions by domain
+  const domains = filter === 'all'
+    ? ['d1','d2','d3','d4','retake']
+    : [filter];
+
+  let html = '';
+  domains.forEach(domain => {
+    const qs = questionBank.filter(q => q.domain === domain);
+    if(!qs.length) return;
+    const meta = domainMeta[domain] || {label:domain, badge:''};
+    html += `<div class="tb-domain">
+      <div class="tb-domain-header" onclick="toggleTBDomain(this)">
+        <div class="tb-domain-header-left">${meta.label} <span class="tb-count">${qs.length} question${qs.length!==1?'s':''}</span></div>
+        <span class="tb-arrow">▶</span>
+      </div>
+      <div class="tb-body open">`;
+    qs.forEach((q, idx) => {
+      const correct = q.opts[q.ans];
+      html += `<div class="tb-q">
+        <div class="tb-badge ${meta.badge}">${meta.label.split('—')[0].trim()}</div>
+        <div style="font-size:10px;color:var(--muted);margin-bottom:4px;font-weight:600">Q${idx+1} of ${qs.length}</div>
+        <div class="tb-q-text">${q.q}</div>
+        <div class="tb-correct">✅ ${correct}</div>
+        <div class="tb-exp">${q.exp}</div>
+        <div style="font-size:11px;color:var(--gold);margin-top:4px;font-style:italic">💡 ${q.also}</div>
+      </div>`;
+    });
+    html += `</div></div>`;
+  });
+
+  // Summary line
+  const total = filter==='all' ? questionBank.length : questionBank.filter(q=>q.domain===filter).length;
+  html = `<div style="font-size:12px;color:var(--muted);padding:.5rem .25rem;margin-bottom:.5rem">
+    Showing <strong style="color:var(--gold)">${total}</strong> question${total!==1?'s':''} 
+    ${filter!=='all'?'in <strong style="color:var(--gold)">'+(domainMeta[filter]||{label:filter}).label+'</strong>':'across all domains'}
+  </div>` + html;
+
+  container.innerHTML = html;
+}
+
+function filterTB(filter, btn){
+  document.querySelectorAll('[id^="tbf-"]').forEach(b=>{
+    b.classList.remove('primary');
+    b.style.background='';b.style.color='';b.style.borderColor='';
+  });
+  if(btn) btn.classList.add('primary');
+  renderTestBank(filter);
+}
+
+function toggleTBDomain(header){
+  const body=header.nextElementSibling;
+  const open=body.classList.contains('open');
+  body.classList.toggle('open',!open);
+  header.classList.toggle('open',!open);
+}
+
 // ═══════════════════════════════════════════════════════════════
-//  QUIZ QUESTIONS
-//  ─────────────────────────────────────────
-//  To add a new course: replace the questions below
-//  Format: {q:'question', opts:['A','B','C','D'], ans:0, exp:'explanation', also:'tip'}
-//  ans = index of correct answer (0=A, 1=B, 2=C, 3=D)
+//  MASTER QUESTION BANK
+//  All questions live here. Quiz draws randomly from this bank.
+//  domain: 'd1'|'d2'|'d3'|'d4'|'retake'
 // ═══════════════════════════════════════════════════════════════
-const questions=[
-  {q:"[Domain 1] A company wants to ship laptops from Dell directly to remote employees with zero IT involvement. Which solution handles this?",opts:["MDT imaging task sequence","Windows Autopilot with a deployment profile","Co-management workload slider","Hybrid Azure AD join policy"],ans:1,exp:"Autopilot is the zero-touch cloud deployment tool. Device ships from vendor to user — Intune takes over when the user signs in. Hardware Hash must be uploaded first.",also:"Keywords: 'shipped from vendor', 'zero-touch', 'no IT involvement' all point to Autopilot."},
-  {q:"[Domain 1] Co-management is configured but devices are not receiving Intune compliance policies. What is the FIRST thing to verify?",opts:["The Intune license is assigned","The device is Hybrid Azure AD Joined","The Compliance Policy workload slider is set to Intune","The hardware hash is uploaded"],ans:1,exp:"Hybrid Azure AD Join is the prerequisite for co-management. If the device is not Hybrid joined, nothing else works — even if the workload slider is correctly set.",also:"Always check Hybrid Azure AD Join FIRST before looking at workload sliders."},
-  {q:"[Domain 2] A nurse's personal iPhone has company email via Outlook. IT wants to prevent copying emails to personal Notes. The device must NOT be enrolled in MDM. What do you configure?",opts:["MDM enrollment policy","iOS Compliance Policy","App Protection Policy (MAM)","Conditional Access requiring compliant device"],ans:2,exp:"App Protection Policy (MAM) protects corporate data inside the app without MDM enrollment. It blocks copy/paste between corporate and personal apps on personal devices.",also:"'Without enrolling the device' = App Protection Policy. Every time. No exceptions."},
-  {q:"[Domain 2] Devices must have BitLocker enabled before accessing SharePoint Online. What TWO things must be configured?",opts:["Update Ring + Expedite Policy","Compliance Policy requiring BitLocker + Conditional Access blocking non-compliant","App Protection Policy + Full Wipe","Configuration Profile + Delivery Optimization"],ans:1,exp:"Compliance Policy defines the rule (BitLocker must be on). Conditional Access enforces it (blocks Non-Compliant devices from SharePoint). Always a pair.",also:"Any question blocking access based on a device requirement = Compliance Policy + Conditional Access together."},
-  {q:"[Domain 2] An employee uses face recognition to sign in — no password required. What technology is this?",opts:["Azure AD SSPR","Conditional Access with biometric condition","Windows Hello for Business","PIM role activation"],ans:2,exp:"Windows Hello for Business replaces passwords with biometrics or PIN. Credential stays on the device and never travels over the network.",also:"Face / fingerprint / PIN / passwordless = Windows Hello for Business. Always."},
-  {q:"[Domain 3] After deploying a Windows update, devices in the Broad ring experience crashes. The All Users ring has not received it yet. What is the fastest action?",opts:["Delete and recreate the Update Ring","Set Feature Update Policy to block the version","Pause the Broad ring","Deploy an Expedite policy"],ans:2,exp:"Pause is the emergency brake — stops new devices from receiving the bad update for up to 35 days while you investigate.",also:"Bad update = Pause the ring. Expedite does the opposite — forces updates faster."},
-  {q:"[Domain 3] A corporate laptop is confirmed stolen at an airport. What remote action should IT take?",opts:["Retire the device","Selective Wipe","Remote Lock","Full Wipe"],ans:3,exp:"Full Wipe factory resets the device — removes everything. Correct for a confirmed-stolen corporate-owned device.",also:"'Confirmed stolen' + 'corporate-owned' = Full Wipe. BYOD = Retire or Selective Wipe only."},
-  {q:"[Domain 3] 5,000 devices on a slow WAN connection are consuming most of the internet bandwidth downloading Windows updates. What feature solves this?",opts:["Update Compliance Reports","Expedite Policy","Delivery Optimization","Pause Update Ring"],ans:2,exp:"Delivery Optimization allows devices to share update files with each other on the local network instead of every device downloading from Microsoft independently.",also:"Slow network + update bandwidth = Delivery Optimization."},
-  {q:"[Domain 3] A Configuration Profile was pushed 4 hours ago. The device has not applied the settings and no error appears. What should the admin do first?",opts:["Delete and recreate the profile","Retire and re-enroll the device","Send a Sync action","Pause the update ring"],ans:2,exp:"Sync forces the device to check in with Intune immediately instead of waiting for its next scheduled interval (up to 8 hours).",also:"Policy assigned but not yet showing = Sync Action is always the first step."},
-  {q:"[Domain 4] An employee leaves. Their personal Android phone had Outlook with corporate email. IT wants to remove only company data without touching personal photos. What action?",opts:["Full Wipe","Retire","Selective Wipe via App Protection Policy","Remote Lock"],ans:2,exp:"Selective Wipe (MAM Wipe) removes only corporate data inside managed apps like Outlook. Device is untouched. Personal photos and apps remain intact. Works even without MDM enrollment.",also:"'Personal device' + 'remove only company data' + 'leave personal stuff alone' = Selective Wipe every time."}
+const questionBank=[
+  // ── DOMAIN 1 ──
+  {domain:'d1',q:"A company wants to ship laptops from Dell directly to remote employees with zero IT involvement. Which solution handles this?",opts:["MDT imaging task sequence","Windows Autopilot with a deployment profile","Co-management workload slider","Hybrid Azure AD join policy"],ans:1,exp:"Autopilot is the zero-touch cloud deployment tool. Hardware Hash must be uploaded first and a Deployment Profile assigned to the device group.",also:"Keywords: 'shipped from vendor', 'zero-touch', 'no IT involvement' all point to Autopilot."},
+  {domain:'d1',q:"Co-management is configured but devices are not receiving Intune compliance policies. What is the FIRST thing to verify?",opts:["The Intune license is assigned","The device is Hybrid Azure AD Joined","The Compliance Policy workload slider is set to Intune","The hardware hash is uploaded"],ans:1,exp:"Hybrid Azure AD Join is the prerequisite for co-management. If the device is not Hybrid joined, nothing else works — even if the workload slider is correctly set.",also:"Always check Hybrid Azure AD Join FIRST before looking at workload sliders."},
+  {domain:'d1',q:"A company is setting up kiosk devices in a hospital lobby. The devices should configure themselves at boot with no user signing in. Which Autopilot mode is this?",opts:["User-Driven Mode","Pre-Provisioning (White Glove)","Self-Deploying Mode","Autopilot Reset"],ans:2,exp:"Self-Deploying Mode is for kiosks and shared devices with no user login. The device uses its TPM 2.0 chip to authenticate itself to Intune at boot.",also:"No user login + device configures itself = Self-Deploying Mode."},
+  {domain:'d1',q:"IT wants to pre-install Microsoft 365 Apps and other large applications before shipping a laptop to a remote employee. Which Autopilot feature allows this?",opts:["User-Driven Mode","Self-Deploying Mode","Pre-Provisioning — White Glove","Autopilot Reset"],ans:2,exp:"Pre-Provisioning (White Glove) lets IT connect the device first, push all apps via Intune, then ship it. User just signs in and everything is ready.",also:"IT pre-loads apps before shipping = White Glove Pre-Provisioning."},
+  {domain:'d1',q:"A device needs to be transferred to a new employee. IT wants to reset it to setup state while keeping it enrolled in Intune and Autopilot-registered. What action?",opts:["Full Wipe","Retire","Autopilot Reset","Fresh Start"],ans:2,exp:"Autopilot Reset returns the device to the Autopilot setup screen while keeping MDM enrollment and Autopilot registration intact.",also:"Re-assign to new employee + keep in Intune = Autopilot Reset. Not Full Wipe."},
+  {domain:'d1',q:"An organization has an existing on-premises Active Directory and uses SCCM. They want to gradually move to Intune using co-management. What MUST be true about the devices?",opts:["Devices must be Azure AD Joined only","Devices must be Azure AD Registered","Devices must be Hybrid Azure AD Joined","Devices must have Intune license only"],ans:2,exp:"Hybrid Azure AD Joined is the prerequisite for co-management — devices must exist in both on-prem AD and Azure AD simultaneously.",also:"Co-management requires Hybrid Azure AD Join. This is the most common co-management trap."},
+  {domain:'d1',q:"A new cloud-first startup has no on-premises servers or Active Directory. They want all new laptops managed entirely by Intune. Which join type should they use?",opts:["Hybrid Azure AD Joined","Azure AD Registered","Domain Joined only","Azure AD Joined"],ans:3,exp:"Azure AD Joined is for cloud-only organizations with no on-prem AD. The device exists only in Azure AD and is managed purely by Intune.",also:"No on-prem AD = Azure AD Joined."},
+  {domain:'d1',q:"An employee wants to use their personal iPhone to access company Teams and Outlook. The company does NOT want to manage the personal device. What is the correct approach?",opts:["Enroll in Intune MDM","Azure AD Join the device","Hybrid Azure AD Join","Register in Azure AD and apply App Protection Policies"],ans:3,exp:"Azure AD Registered + App Protection Policies (MAM) is correct for personal BYOD. IT manages only the corporate app data — not the device itself.",also:"Personal device + company doesn't want full control = Azure AD Registered + MAM."},
+
+  // ── DOMAIN 2 ──
+  {domain:'d2',q:"A nurse's personal iPhone has company email via Outlook. IT wants to prevent copying emails to personal Notes. Device must NOT be enrolled in MDM. What do you configure?",opts:["MDM enrollment policy","iOS Compliance Policy","App Protection Policy (MAM)","Conditional Access requiring compliant device"],ans:2,exp:"App Protection Policy (MAM) protects corporate data inside the app without MDM enrollment. Blocks copy/paste between corporate and personal apps.",also:"'Without enrolling the device' = App Protection Policy. Every time."},
+  {domain:'d2',q:"Devices must have BitLocker enabled before accessing SharePoint Online. What TWO things must be configured?",opts:["Update Ring + Expedite Policy","Compliance Policy requiring BitLocker + Conditional Access blocking non-compliant","App Protection Policy + Full Wipe","Configuration Profile + Delivery Optimization"],ans:1,exp:"Compliance Policy grades the device. Conditional Access enforces it. Always a pair when blocking access based on device state.",also:"Block access based on device requirement = Compliance Policy + Conditional Access together."},
+  {domain:'d2',q:"An employee uses face recognition to sign in to their laptop — no password required. What technology is this?",opts:["Azure AD SSPR","Conditional Access with biometric condition","Windows Hello for Business","PIM role activation"],ans:2,exp:"Windows Hello for Business replaces passwords with biometrics or PIN. Credential stays on device — never transmitted over the network.",also:"Face / fingerprint / PIN / passwordless = Windows Hello for Business."},
+  {domain:'d2',q:"Users are calling the help desk every day to reset forgotten passwords. What feature eliminates most of these calls?",opts:["PIM — Privileged Identity Management","Conditional Access policy","SSPR — Self-Service Password Reset","Windows Hello for Business"],ans:2,exp:"SSPR allows users to reset their own forgotten passwords using a verification method like email, phone, or authenticator app. No IT ticket needed.",also:"Users reset own passwords = SSPR."},
+  {domain:'d2',q:"An admin needs temporary access to make a high-risk change in Intune. The company wants to avoid permanent admin accounts. What solution provides this?",opts:["Azure AD Roles assignment","SSPR","PIM — Privileged Identity Management","Entra ID Protection"],ans:2,exp:"PIM provides just-in-time role activation. The admin activates the role for a time-limited window, makes the change, and access expires automatically.",also:"Temporary / time-limited / just-in-time admin = PIM."},
+  {domain:'d2',q:"Microsoft's AI detects that a user signed in from New York at 8am and then from London at 9am. What feature automatically flags this and can trigger additional verification?",opts:["Conditional Access Named Location","Windows Hello for Business","Entra ID Protection","SSPR"],ans:2,exp:"Entra ID Protection detects risky sign-ins like impossible travel. It generates risk signals that Conditional Access policies can act on — requiring MFA or blocking access.",also:"Suspicious sign-in / impossible travel = Entra ID Protection."},
+  {domain:'d2',q:"Users signing in from outside the corporate office network should be required to use MFA. Users inside the office should not need MFA. What do you configure?",opts:["Windows Hello for Business for all devices","Compliance Policy requiring MFA","Conditional Access policy with Named Locations","SSPR with location restriction"],ans:2,exp:"Conditional Access with Named Locations defines trusted IP ranges (the office). When users sign in from outside trusted IPs, CA requires MFA.",also:"MFA only from outside office = Conditional Access + Named Locations."},
+
+  // ── DOMAIN 3 ──
+  {domain:'d3',q:"After deploying a Windows update, devices in the Broad ring experience application crashes. The All Users ring has not received it yet. What is the fastest action?",opts:["Delete and recreate the Update Ring","Set Feature Update Policy to block the version","Pause the Broad ring","Deploy an Expedite policy"],ans:2,exp:"Pause is the emergency brake for Update Rings — stops new devices from receiving the bad update for up to 35 days.",also:"Bad update = Pause the ring. Expedite does the opposite — forces updates faster."},
+  {domain:'d3',q:"A corporate laptop is confirmed stolen at an airport. What remote action should IT take?",opts:["Retire the device","Selective Wipe","Remote Lock","Full Wipe"],ans:3,exp:"Full Wipe factory resets the device — removes everything. Correct for confirmed-stolen corporate-owned devices.",also:"Stolen + corporate-owned = Full Wipe. BYOD = Retire or Selective Wipe only."},
+  {domain:'d3',q:"5,000 devices on a slow WAN connection are consuming most internet bandwidth downloading Windows updates. What feature solves this?",opts:["Update Compliance Reports","Expedite Policy","Delivery Optimization","Pause Update Ring"],ans:2,exp:"Delivery Optimization allows devices to share update files with each other on the local network instead of downloading from Microsoft independently.",also:"Slow network + update bandwidth = Delivery Optimization."},
+  {domain:'d3',q:"A Configuration Profile was pushed 4 hours ago. Device has not applied settings and no error appears. What should admin do first?",opts:["Delete and recreate the profile","Retire and re-enroll the device","Send a Sync action","Pause the update ring"],ans:2,exp:"Sync forces the device to check in immediately instead of waiting for its next scheduled interval (up to 8 hours). Always the first troubleshooting step.",also:"Policy assigned but not showing = Sync Action first."},
+  {domain:'d3',q:"IT needs to push a Wi-Fi configuration profile to all company Windows devices automatically. What Intune feature handles this?",opts:["Compliance Policy","App Protection Policy","Configuration Profile — Wi-Fi type","Update Ring"],ans:2,exp:"Configuration Profiles push settings to devices — including Wi-Fi credentials. Assigned to User or Device groups and apply automatically at check-in.",also:"Push any setting to device = Configuration Profile."},
+  {domain:'d3',q:"A critical zero-day security patch was released. IT needs it installed on ALL devices immediately, bypassing all deferral settings. What feature accomplishes this?",opts:["Pause Update Ring","Feature Update Policy","Expedite Policy","Update Ring with 0-day deferral"],ans:2,exp:"Expedite Policy forces a specific quality update to install immediately on all targeted devices, bypassing all deferral settings in Update Rings.",also:"Critical patch ASAP + bypass deferral = Expedite Policy."},
+  {domain:'d3',q:"An infected device has active ransomware spreading to network shares. What is the IMMEDIATE action in the Defender portal?",opts:["Run a full antivirus scan","Isolate the device from the network","Retire the device from Intune","Apply an ASR rule to block file encryption"],ans:1,exp:"Device Isolation cuts all network access while keeping the Defender connection alive for investigation. Stops ransomware spread in seconds.",also:"Active infection / spreading = Device Isolation immediately."},
+  {domain:'d3',q:"IT wants to ensure all company laptops have their drives encrypted. If a device is lost, IT must be able to retrieve the recovery key. What TWO things must be configured?",opts:["Compliance Policy requiring BitLocker AND recovery keys stored in Entra ID","Configuration Profile for firewall AND Conditional Access block","Full Wipe AND Remote Lock","App Protection Policy AND Update Ring"],ans:0,exp:"BitLocker enforcement via Intune Endpoint Security policy, with recovery key escrow to Entra ID configured. IT retrieves the 48-digit key from the Intune device page.",also:"Encrypted drive + recovery key stored = BitLocker managed by Intune with Entra ID escrow."},
+  {domain:'d3',q:"A company wants to control which version of Windows 11 their devices upgrade to and defer the upgrade for 90 days. What feature handles this?",opts:["Update Rings — quality update deferral","Feature Update Policy","Pause Update Ring","Windows Update for Business compliance reports"],ans:1,exp:"Feature Update Policy controls which major Windows version devices upgrade to and when. Separate from Update Rings which handle monthly quality patches.",also:"Control Windows version / major OS upgrade = Feature Update Policy. NOT Update Rings."},
+
+  // ── DOMAIN 4 ──
+  {domain:'d4',q:"An employee leaves. Their personal Android had Outlook with company email. IT wants to remove only company data without touching personal photos. What action?",opts:["Full Wipe","Retire","Selective Wipe via App Protection Policy","Remote Lock"],ans:2,exp:"Selective Wipe removes corporate data from managed apps only. Device is untouched. Works without MDM enrollment.",also:"Personal device + remove only company data + leave personal stuff = Selective Wipe."},
+  {domain:'d4',q:"IT needs to deploy a security monitoring agent to ALL company devices automatically. Users should never see a prompt. Which assignment type?",opts:["Available","Uninstall","Required","LOB App"],ans:2,exp:"Required assignment installs the app silently and automatically. No user prompt. IT controls it completely.",also:"IT forces it silently = Required assignment."},
+  {domain:'d4',q:"A company wants to make Zoom available for employees who need it, but does NOT want to push it to every device. Which assignment type?",opts:["Required","Uninstall","LOB App","Available"],ans:3,exp:"Available makes the app appear in Company Portal. User chooses to install it. IT does not force it on anyone.",also:"User chooses to install = Available assignment."},
+  {domain:'d4',q:"An IT admin deployed a Win32 app to 500 devices. It shows 'Install Pending' on all devices and never completes. The app is actually installed correctly. What is the most likely cause?",opts:["Assigned as Available instead of Required","Device has not synced yet","Detection rules are incorrect","IntuneWinAppUtil packaging failed"],ans:2,exp:"Detection rules tell Intune how to verify the app installed. If the rule does not match the actual installed state, Intune reports it as failed or pending forever.",also:"App stuck at pending + app IS installed = check detection rules first."},
+  {domain:'d4',q:"A hospital uses Microsoft 365 Apps and needs the most stable update channel. Updates should arrive every 6 months. Which channel?",opts:["Current Channel","Monthly Enterprise Channel","Semi-Annual Enterprise Channel","Insider Channel"],ans:2,exp:"Semi-Annual Enterprise Channel delivers updates every 6 months. Most stable. Best for regulated environments like hospitals and government.",also:"Regulated + stable + every 6 months = Semi-Annual Enterprise Channel."},
+  {domain:'d4',q:"A user's personal iPhone has Outlook with company email. Company wants to require a PIN to open Outlook and block screenshots in the app. The device must NOT be enrolled in MDM. What feature?",opts:["Conditional Access requiring compliant device","Intune MDM enrollment with compliance policy","App Protection Policy with PIN and screenshot block","Device restriction configuration profile"],ans:2,exp:"App Protection Policy (MAM) controls app behavior on personal devices without MDM enrollment. Can require PIN, block screenshots, and restrict data movement.",also:"Personal device + app behavior controls + no MDM = App Protection Policy."},
+
+  // ── RETAKE FOCUS — Remote Actions ──
+  {domain:'retake',q:"[Remote Actions] A corporate-owned laptop is confirmed stolen. Device has NO personal data. What remote action should IT take immediately?",opts:["Retire","Remote Lock","Selective Wipe","Full Wipe"],ans:3,exp:"Full Wipe factory resets everything — correct for a confirmed-stolen corporate device with no personal data.",also:"Stolen + corporate-owned = Full Wipe. Personal BYOD = Retire or Selective Wipe."},
+  {domain:'retake',q:"[Remote Actions] Employee leaving. Personal Android enrolled in Intune MDM. Has Outlook with company email. Remove company data, keep personal photos. What action?",opts:["Full Wipe","Retire","Selective Wipe","Remote Lock"],ans:1,exp:"Retire removes company apps and policies while leaving personal data untouched. It also un-enrolls the device. Requires MDM enrollment.",also:"BYOD + enrolled + employee leaving = Retire. NOT Full Wipe."},
+  {domain:'retake',q:"[Remote Actions] A nurse has a personal iPhone NEVER enrolled in MDM — only App Protection Policies applied. Nurse is leaving. How do you remove company email data?",opts:["Retire the device","Full Wipe","Selective Wipe via App Protection","Sync Action"],ans:2,exp:"Selective Wipe (MAM Wipe) removes corporate data from the managed app without MDM enrollment. Retire requires MDM enrollment which this device does not have.",also:"No MDM enrollment + remove company data = Selective Wipe."},
+  {domain:'retake',q:"[Remote Actions] A new Configuration Profile was pushed 6 hours ago. Device still has not applied settings. No error in Intune. What should admin do FIRST?",opts:["Delete and recreate the profile","Retire and re-enroll","Send a Sync action","Full Wipe and re-enroll"],ans:2,exp:"Sync forces immediate check-in. Always the first troubleshooting step when a policy is assigned but not applied.",also:"Policy assigned but not showing = Sync Action first."},
+  {domain:'retake',q:"[Remote Actions] Device being transferred to a new employee. Keep it enrolled in Intune and keep Autopilot registration. Return to setup screen. What action?",opts:["Full Wipe","Retire","Autopilot Reset","Selective Wipe"],ans:2,exp:"Autopilot Reset returns to setup screen while keeping enrollment and Autopilot registration. Does NOT factory wipe.",also:"Re-assign + keep in Intune = Autopilot Reset."},
+  {domain:'retake',q:"[Entra ID Join] Company is 100% cloud-based. No on-premises servers or AD. New laptops managed entirely by Intune. Which join type?",opts:["Hybrid Azure AD Joined","Azure AD Registered","Azure AD Joined","Domain Joined only"],ans:2,exp:"Azure AD Joined is for cloud-only orgs with no on-prem AD. Managed purely by Intune.",also:"No on-prem AD = Azure AD Joined."},
+  {domain:'retake',q:"[Entra ID Join] Large enterprise has on-premises AD and SCCM. They want co-management with Intune. What join type is REQUIRED?",opts:["Azure AD Joined","Azure AD Registered","Hybrid Azure AD Joined","Workgroup joined"],ans:2,exp:"Hybrid Azure AD Join is the prerequisite for co-management. Must exist in both on-prem AD and Azure AD.",also:"Co-management requires Hybrid Azure AD Join."},
+  {domain:'retake',q:"[Entra ID Join] Employee wants to use personal MacBook for company email and Teams. IT does NOT want to fully manage the personal device. Correct approach?",opts:["Hybrid Azure AD Join the device","Azure AD Join the device","Register in Azure AD and apply App Protection Policies","Enroll in Intune MDM"],ans:2,exp:"Azure AD Registered + MAM is correct for personal BYOD. IT manages only the corporate app data.",also:"Personal device + IT does not want full control = Azure AD Registered + MAM."},
+  {domain:'retake',q:"[App Deployment] IT needs to deploy a security monitoring agent to ALL devices automatically. Users should never see a prompt. Which assignment type?",opts:["Available","Uninstall","Required","LOB App"],ans:2,exp:"Required installs silently on all targeted devices. Users have no choice and see no prompt.",also:"IT forces it silently = Required assignment."},
+  {domain:'retake',q:"[App Deployment] Company wants Zoom available for employees who need it but does NOT want to push it to every device. Which assignment type?",opts:["Required","Uninstall","LOB App","Available"],ans:3,exp:"Available makes the app visible in Company Portal. User chooses to install it.",also:"User chooses = Available assignment."},
+  {domain:'retake',q:"[App Deployment] Win32 app shows 'Install Pending' on 500 devices and never completes. App is actually installed correctly. Most likely cause?",opts:["Assigned as Available instead of Required","Device has not synced yet","Detection rules are incorrect","IntuneWinAppUtil packaging failed"],ans:2,exp:"Detection rules tell Intune the install succeeded. Wrong rule = Intune thinks it failed even when the app is installed.",also:"App stuck at pending + app IS installed = check detection rules first."},
+  {domain:'retake',q:"[App Deployment] A hospital uses Microsoft 365 Apps and needs the most stable update channel — updates every 6 months only. Which channel?",opts:["Current Channel","Monthly Enterprise Channel","Semi-Annual Enterprise Channel","Insider Channel"],ans:2,exp:"Semi-Annual Enterprise delivers updates every 6 months. Most stable. Best for regulated environments.",also:"Regulated + stable + every 6 months = Semi-Annual Enterprise Channel."},,
+  // ── ADDITIONAL D1 ──
+  {domain:'d1',q:"What file must be collected from a device and uploaded to Intune before Windows Autopilot can register that device?",opts:["Device serial number CSV","Hardware hash CSV","Azure AD object ID","Intune enrollment token"],ans:1,exp:"The hardware hash is a unique fingerprint of the device that must be uploaded to Intune as a CSV file before Autopilot can recognize the device as belonging to the organization.",also:"Hardware hash = the device's fingerprint. No hash = Autopilot won't trigger."},
+  {domain:'d1',q:"A company is migrating from SCCM to Intune and wants to test moving the Windows Update workload to Intune on just 10 devices before applying it to all 5,000 devices. What do they use?",opts:["Update Rings","Feature Update Policy","Pilot Collection in co-management","Conditional Access pilot group"],ans:2,exp:"A Pilot Collection is a small group of devices used to test a co-management workload slider change before applying it to all devices. Standard risk management during migration.",also:"Test co-management workload on small group = Pilot Collection."},
+
+  // ── ADDITIONAL D2 ──
+  {domain:'d2',q:"An IT admin needs to configure MFA so that it is required only when users sign in from outside the United States. What Conditional Access condition is used?",opts:["Device compliance state","Named Locations with country filter","Sign-in risk level","User group assignment"],ans:1,exp:"Named Locations in Conditional Access can be defined by country or IP range. You mark all foreign locations as outside trusted zones and require MFA when signing in from those locations.",also:"Location-based MFA = Conditional Access + Named Locations by country."},
+
+  // ── ADDITIONAL D3 ──
+  {domain:'d3',q:"An admin wants to configure Microsoft Defender Antivirus scan schedules across all 3,000 company devices. What is the correct Intune path?",opts:["Configuration Profile — Device Restrictions","Group Policy Object","Endpoint Security — Antivirus policy","Windows Update for Business"],ans:2,exp:"Intune Endpoint Security — Antivirus policy is the correct path to configure Defender Antivirus settings at scale. Group Policy is for on-prem only and not recommended for cloud-managed devices.",also:"Defender antivirus config at scale = Intune Endpoint Security — Antivirus policy."},
+  {domain:'d3',q:"Devices in the Pilot ring received a Windows update successfully with no issues for 7 days. IT now wants to push the same update to all remaining devices. What is the next step?",opts:["Create an Expedite policy","Resume the paused ring","Move the deferral period to 0 on the Broad ring","Unpause and let the Broad ring deferral expire naturally"],ans:3,exp:"After a successful pilot period, the standard approach is to let the Broad ring's deferral expire naturally, which releases the update to those devices without any special action required.",also:"Pilot success + roll to next ring = let deferral expire or reduce deferral to 0 on Broad ring."},
+  {domain:'d3',q:"An employee reports their device was lost. IT is not sure if it was stolen or just misplaced. What is the MOST appropriate immediate action?",opts:["Full Wipe immediately","Retire the device","Remote Lock","Selective Wipe"],ans:2,exp:"Remote Lock is the most appropriate immediate action when a device is possibly lost but not confirmed stolen. It secures the screen without destroying any data, giving time to confirm whether the device is truly gone.",also:"Possibly lost + not confirmed stolen = Remote Lock first, Full Wipe only after confirmed stolen."},
+
+  // ── ADDITIONAL D4 ──
+  {domain:'d4',q:"An organization wants to prevent users from saving company documents from OneDrive for Business to their personal Google Drive on personal iPhones. What feature enforces this?",opts:["Conditional Access policy","MDM Device Restriction profile","App Protection Policy — restrict save location","BitLocker disk encryption"],ans:2,exp:"App Protection Policy can restrict the locations where users can save corporate data. Blocking save to unmanaged locations (like personal Google Drive) is a core MAM capability that works without MDM enrollment.",also:"Block save to personal storage on personal device = App Protection Policy restrict save location."},
+  {domain:'d4',q:"A company deploys Microsoft 365 Apps to all devices via Intune. They want Word, Excel, and Teams installed but NOT Access or Publisher. How do they control which apps install?",opts:["Create separate Win32 app packages for each app","Use the Microsoft 365 Apps built-in Intune app type and select apps during configuration","Deploy via SCCM task sequence","Use App Protection Policy to block unused apps"],ans:1,exp:"The Microsoft 365 Apps built-in app type in Intune lets you select exactly which apps to include or exclude during configuration — no packaging required.",also:"Control which M365 apps install = use built-in M365 Apps type in Intune, select apps during setup."},
+
 ];
 
-let current=0,score=0,answered=false,quizStarted=false;
-
-function startQuiz(){quizStarted=true;current=0;score=0;answered=false;renderQ();}
-
-function renderQ(){
-  if(current>=questions.length){showResult();return;}
-  const q=questions[current];
-  document.getElementById('prog').style.width=((current/questions.length)*100)+'%';
-  document.getElementById('score-display').textContent='Score: '+score+'/'+current;
-  document.getElementById('next-btn').style.display='none';
-  answered=false;
-  let html=`<div class="quiz-card"><div class="q-num">Question ${current+1} of ${questions.length}</div><div class="q-text">${q.q}</div><div class="q-opts">`;
-  q.opts.forEach((o,i)=>{html+=`<button class="q-opt" onclick="answer(${i})">${String.fromCharCode(65+i)}. ${o}</button>`;});
-  html+=`</div><div class="q-explain" id="explain"></div></div>`;
-  document.getElementById('quiz-area').innerHTML=html;
+// ── SHUFFLE UTILITY ──
+function shuffle(arr){
+  const a=[...arr];
+  for(let i=a.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
 }
 
-function answer(i){
-  if(answered)return;answered=true;
-  const q=questions[current];
-  const opts=document.querySelectorAll('.q-opt');
-  opts.forEach(o=>o.disabled=true);
-  const correct=i===q.ans;
-  if(correct){opts[i].classList.add('correct');score++;}
-  else{opts[i].classList.add('wrong');opts[q.ans].classList.add('reveal');}
-  const exp=document.getElementById('explain');
-  exp.classList.add('show');
-  exp.style.background=correct?'var(--success-bg)':'var(--danger-bg)';
-  exp.style.color=correct?'var(--success)':'var(--danger)';
-  exp.style.borderColor=correct?'rgba(74,222,128,.3)':'rgba(248,113,113,.3)';
-  exp.innerHTML=`<strong>${correct?'✅ Correct':'❌ Incorrect'}</strong> — ${q.exp}<div class="q-also">💡 ${q.also}</div>`;
-  document.getElementById('score-display').textContent='Score: '+score+'/'+(current+1);
-  document.getElementById('next-btn').style.display='inline-block';
-  current++;
-}
-
-function nextQ(){if(current>=questions.length){showResult();}else{renderQ();}}
-
-function showResult(){
-  document.getElementById('prog').style.width='100%';
-  const pct=Math.round((score/questions.length)*100);
-  const msg=pct>=80?'Exam-ready! 🎉':pct>=60?'Good — review missed cards then retake.':'Review domain cards and cheat sheet, then come back.';
-  document.getElementById('quiz-area').innerHTML=`<div class="quiz-card" style="text-align:center;padding:2rem"><div style="font-size:38px;margin-bottom:10px">${pct>=80?'🎉':pct>=60?'👍':'📚'}</div><div style="font-size:26px;font-weight:700;color:var(--gold);margin-bottom:6px">${score} / ${questions.length}</div><div style="font-size:13px;color:var(--muted);margin-bottom:1.25rem">${pct}% — ${msg}</div><button class="btn primary" onclick="startQuiz()">Retake Quiz</button></div>`;
-  document.getElementById('next-btn').style.display='none';
-  document.getElementById('score-display').textContent='';
-}
+// ── QUIZ STATE ──
 </script>
 </body>
 </html>
